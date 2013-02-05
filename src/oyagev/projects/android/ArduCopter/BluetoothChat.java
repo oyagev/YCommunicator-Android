@@ -145,12 +145,13 @@ public class BluetoothChat extends Activity  {
     
     private void setupControls(){
     	Log.d(TAG,"setupControls()");
+    	SeekBar s = (SeekBar)findViewById(R.id.seek1);
+		TextView t = (TextView)findViewById(R.id.seek_text1);
+		s.setOnSeekBarChangeListener(new MSeekListener(s,t));
     	//LinearLayout seekbars = (LinearLayout)findViewById(R.id.seekbars);
     	//Context c = getApplicationContext();
     	for (int i=0;i<4;i++){
-    		SeekBar s = (SeekBar)findViewById(R.id.seek1);
-    		TextView t = (TextView)findViewById(R.id.seek_text1);
-    		s.setOnSeekBarChangeListener(new MSeekListener(this,s,t));
+    		
     		/*LinearLayout row = new LinearLayout(c);
     		row.setOrientation(LinearLayout.HORIZONTAL);
     		
@@ -405,11 +406,11 @@ public class BluetoothChat extends Activity  {
 		private BluetoothChat bt=null;
 		private boolean is_sending = false;
 		
-		public MSeekListener(BluetoothChat btService, SeekBar seek, TextView text) {
+		public MSeekListener(SeekBar seek, TextView text) {
 			// TODO Auto-generated constructor stub
 			this.seek = seek;
 			this.text = text;
-			this.bt = btService;
+			//this.bt = btService;
 			
 		}
 		@Override
@@ -419,7 +420,7 @@ public class BluetoothChat extends Activity  {
 			byte[] buff = ByteBuffer.allocate(4).putInt(progress).array();
 			//Integer i = Integer.valueOf(progress);
 			//Log.d("Listener","State: "+bt.getState());
-			bt.sendMessage(buff);
+			sendMessage(buff);
 		}
 
 		@Override
