@@ -5,7 +5,6 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 
 import oyagev.projects.YCommunicator.Instruction;
-import oyagev.projects.YCommunicator.Packet;
 
 public class InstructionTest {
 	@Test
@@ -17,7 +16,6 @@ public class InstructionTest {
 		assertEquals(3, inst.getCommand());
 		assertEquals(ByteBuffer.wrap(new byte[]{4,5}), inst.getData());
 		
-		ByteBuffer buff = inst.toByteBuffer();
 		assertArrayEquals(bytes, inst.toByteBuffer().array());
 		
 		

@@ -13,7 +13,7 @@ public class InputBufferTest {
 		byte[] bytes;
 		InputBuffer inp = new InputBuffer();
 		assertFalse(inp.hasPackets());
-		bytes = new byte[] {2,3,4,0,0};
+		bytes = new byte[] {2,3,4,0,0,0,0,0x7c};
 		for(int i=0;i<bytes.length;i++){
 			assertFalse(inp.hasPackets());
 			inp.write(bytes[i]);
@@ -21,23 +21,23 @@ public class InputBufferTest {
 		}
 		assertTrue(inp.hasPackets());
 		
-		bytes = new byte[] {5,1,2,3,4,5,6,7};
+		bytes = new byte[] {5,1,2,3,4,5,6,7,0x7c};
 		for(int i=0;i<bytes.length;i++){
 			inp.write(bytes[i]);
 		}
 		
 		Packet p = inp.popPacket();
-		assertEquals(2, p.getPayloadSize());
+		assertEquals(3, p.getPayloadSize());
 		assertEquals(0, p.getChecksum());
 		ByteBuffer buff = p.getPayload();
-		assertEquals(2, buff.limit());
+		assertEquals(3, buff.limit());
 		
 		
 		p = inp.popPacket();
-		assertEquals(5, p.getPayloadSize());
+		assertEquals(6, p.getPayloadSize());
 		assertEquals(0, p.getChecksum());
 		buff = p.getPayload();
-		assertEquals(5, buff.limit());
+		assertEquals(6, buff.limit());
 		
 	}
 }

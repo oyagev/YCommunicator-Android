@@ -17,7 +17,15 @@
 package oyagev.projects.android.ArduCopter;
 
 
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.util.Hashtable;
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import oyagev.projects.YCommunicator.YCommunicator;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -25,6 +33,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,6 +45,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewManager;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
@@ -45,6 +56,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -89,6 +101,10 @@ public class BluetoothChat extends Activity  {
     private BluetoothAdapter mBluetoothAdapter = null;
     // Member object for the chat services
     private BluetoothChatService mChatService = null;
+    
+    private YCommunicator ycomm = null;
+    
+    private Hashtable<View, Integer> viewCmdMap;
 
 
     @Override
@@ -145,30 +161,32 @@ public class BluetoothChat extends Activity  {
     
     private void setupControls(){
     	Log.d(TAG,"setupControls()");
+    	
+    	
+    	SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
+		String strPrefs = settings.getString("prefs", "{}");
+		cleanControls();
+		try {
+			JSONObject prefs = new JSONObject(strPrefs);
+			JSONArray controls = prefs.getJSONArray("controls");
+			for (int i=0;i<controls.length();i++){
+				JSONObject row = (JSONObject) controls.get(i);
+				Log.d(TAG,"Adding control: "+ row.getString("type"));
+				addControl(row.getString("name"), row.getString("type"), row.getInt("cmd"));
+			}
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+			Toast.makeText(this, e.getMessage().toString(), Toast.LENGTH_LONG).show();
+			Log.e(TAG, e.getMessage().toString());
+		}
+    	
+    	/*
     	SeekBar s = (SeekBar)findViewById(R.id.seek1);
 		TextView t = (TextView)findViewById(R.id.seek_text1);
 		s.setOnSeekBarChangeListener(new MSeekListener(s,t));
-    	//LinearLayout seekbars = (LinearLayout)findViewById(R.id.seekbars);
-    	//Context c = getApplicationContext();
-    	for (int i=0;i<4;i++){
-    		
-    		/*LinearLayout row = new LinearLayout(c);
-    		row.setOrientation(LinearLayout.HORIZONTAL);
-    		
-    		SeekBar seek = new SeekBar(c);
-    		
-    		TextView text = new TextView(c);
-    		seek.setOnSeekBarChangeListener(new MSeekListener(mChatService,seek,text));
-    		
-    		text.setText("00");
-    		row.addView(seek,new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,6));
-    		row.addView(text,new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,2));
-    		seekbars.addView(row,new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-    		*/
-    	}
-    	
-    	//SeekBar seek = (SeekBar)findViewById(R.id.ge);
-    	//seek.setOnSeekBarChangeListener(new MSeekListener());
+    	*/
     	
     	
     	
@@ -179,9 +197,10 @@ public class BluetoothChat extends Activity  {
 
         // Initialize the array adapter for the conversation thread
         mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
-        mConversationView = (ListView) findViewById(R.id.in);
-        mConversationView.setAdapter(mConversationArrayAdapter);
+        //mConversationView = (ListView) findViewById(R.id.in);
+        //mConversationView.setAdapter(mConversationArrayAdapter);
 
+        /*
         // Initialize the compose field with a listener for the return key
         mOutEditText = (EditText) findViewById(R.id.edit_text_out);
         mOutEditText.setOnEditorActionListener(mWriteListener);
@@ -196,12 +215,14 @@ public class BluetoothChat extends Activity  {
                 sendMessage(message);
             }
         });
-
+		*/
         // Initialize the BluetoothChatService to perform bluetooth connections
         mChatService = new BluetoothChatService(this, mHandler);
 
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
+        
+        ycomm = new YCommunicator();
     }
 
     @Override
@@ -256,7 +277,7 @@ public class BluetoothChat extends Activity  {
 
         // Reset out string buffer to zero and clear the edit text field
         mOutStringBuffer.setLength(0);
-        mOutEditText.setText(mOutStringBuffer);
+        //mOutEditText.setText(mOutStringBuffer);
     }
 
     // The action listener for the EditText widget, to listen for the return key
@@ -380,15 +401,21 @@ public class BluetoothChat extends Activity  {
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent serverIntent = null;
         switch (item.getItemId()) {
-        case R.id.secure_connect_scan:
+        /*case R.id.secure_connect_scan:
             // Launch the DeviceListActivity to see devices and do scan
             serverIntent = new Intent(this, DeviceListActivity.class);
             startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
-            return true;
+            return true;*/
         case R.id.insecure_connect_scan:
             // Launch the DeviceListActivity to see devices and do scan
             serverIntent = new Intent(this, DeviceListActivity.class);
             startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
+            return true;
+        case R.id.open_settings_ic:
+            // Launch the DeviceListActivity to see devices and do scan
+            serverIntent = new Intent(this, SettingsActivity.class);
+            //startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
+            startActivity(serverIntent);
             return true;
         case R.id.discoverable:
             // Ensure this device is discoverable by others
@@ -397,45 +424,130 @@ public class BluetoothChat extends Activity  {
         }
         return false;
     }
+    
+    private void addControl(String name, String type, int commandValue){
+    	
+    	LinearLayout row = new LinearLayout(this); 
+		row.setOrientation(LinearLayout.HORIZONTAL);
+		row.setLayoutParams(new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+		
+		View view = new TextView(this);
+		
+		//hidden view for command value
+		TextView cmdView = new TextView(this);
+		cmdView.setLayoutParams(new LinearLayout.LayoutParams(0, 0));
+		cmdView.setVisibility(View.INVISIBLE);
+		cmdView.setText(String.valueOf(commandValue));
+		cmdView.setTag("cmd");
+		
+		//Setup the control
+		if (type.equals("Button")){
+			view = new Button(this);
+			
+			((Button)view).setText(name);
+			((Button)view).setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					TextView cmd = (TextView) ((LinearLayout)v.getParent()).findViewWithTag("cmd");
+					
+					dispatchUserEvent((int)Integer.valueOf(cmd.getText().toString()) , new byte[]{1});
+			
+				}
+			});
+		}else if (type.equals("Edit")){
+			view = new EditText(this);
+
+			((EditText)view).setText(name);
+		}else if (type.equals("Label")){
+			view = new TextView(this);
+
+			((TextView)view).setText(name);
+		}else if (type.equals("Scrollbar")){
+			view = new LinearLayout(this);
+			
+			TextView text = new TextView(this);
+			text.setLayoutParams(new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+			text.setText(name);
+			text.setTag("seek_text");
+			SeekBar bar = new SeekBar(this);
+			bar.setLayoutParams(new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+			
+
+			((LinearLayout)view).setOrientation(LinearLayout.VERTICAL);
+			
+			((LinearLayout)view).addView(text);
+			((LinearLayout)view).addView(bar);
+			
+			bar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+				
+				@Override
+				public void onStopTrackingTouch(SeekBar seekBar) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				@Override
+				public void onStartTrackingTouch(SeekBar seekBar) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				@Override
+				public void onProgressChanged(SeekBar seekBar, int progress,
+						boolean fromUser) {
+					
+					
+					TextView cmd = (TextView) ((LinearLayout)((LinearLayout)seekBar.getParent()).getParent()).findViewWithTag("cmd");
+
+					ByteBuffer buffer = ByteBuffer.allocate(2);
+			    	buffer.putShort((short)progress);
+			    	
+					dispatchUserEvent((int)Integer.valueOf(cmd.getText().toString()), buffer.array());
+					
+				}
+			});
+			
+		}else{
+			return;
+		}
+		view.setLayoutParams(new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+		
+		row.addView(cmdView);
+		row.addView(view);
+		((LinearLayout)findViewById(R.id.controls_layout)).addView(row);
+		
+		
+		
+    }
+    
+    private void cleanControls(){
+    	LinearLayout controls = ((LinearLayout)findViewById(R.id.controls_layout));
+    	controls.removeAllViews();
+    }
+    
+    
+    private void dispatchUserEvent(int command, byte[] data){
+    	Log.d(TAG, String.format("Dispatching cmd %d", command));
+    	//byte[] buff = ByteBuffer.allocate(4).putInt(progress).array();
+		ycomm.dispatch((byte)0, (byte)command, data);
+		//Integer i = Integer.valueOf(progress);
+		//Log.d("Listener","State: "+bt.getState());
+		byte buffOut[] = new byte[ycomm.available()];
+		int i = 0;
+		while (ycomm.available()>0){
+			buffOut[i++] = ycomm.read();
+		}
+		sendMessage(buffOut);
+    }
 
 	
     
-	private class MSeekListener implements OnSeekBarChangeListener{
-		private SeekBar seek=null;
-		private TextView text=null;
-		private BluetoothChat bt=null;
-		private boolean is_sending = false;
-		
-		public MSeekListener(SeekBar seek, TextView text) {
-			// TODO Auto-generated constructor stub
-			this.seek = seek;
-			this.text = text;
-			//this.bt = btService;
-			
-		}
-		@Override
-		public void onProgressChanged(SeekBar seek, int progress, boolean user) {
-			text.setText(progress+"");
-			//Log.d("Listener","hi");
-			byte[] buff = ByteBuffer.allocate(4).putInt(progress).array();
-			//Integer i = Integer.valueOf(progress);
-			//Log.d("Listener","State: "+bt.getState());
-			sendMessage(buff);
-		}
-
-		@Override
-		public void onStartTrackingTouch(SeekBar arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onStopTrackingTouch(SeekBar arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
-	}
+	
     
 
 }

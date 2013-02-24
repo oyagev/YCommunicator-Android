@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 public class Packet {
 	
-	public static int OVERHEAD=3;
+	public static int OVERHEAD=2;
 	
 	ByteBuffer payload;
 	
@@ -36,7 +36,7 @@ public class Packet {
 		int size = this.getPayloadSize() + OVERHEAD;
 		ByteBuffer buff = ByteBuffer.allocate(size);
 		
-		buff.put((byte) this.getPayloadSize());
+		//buff.put((byte) this.getPayloadSize());
 		buff.put(payload);
 		buff.putShort((short) this.getChecksum());
 		payload.rewind();

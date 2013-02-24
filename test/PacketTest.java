@@ -18,7 +18,7 @@ public class PacketTest {
 		assertEquals(bytes.length, p.getPayloadSize());
 		ByteBuffer b = p.toByteBuffer();
 		assertEquals(bytes.length+Packet.OVERHEAD, b.limit());
-		assertEquals(7, b.get());
+		
 	}
 	
 }
