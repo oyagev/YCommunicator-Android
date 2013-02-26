@@ -12,3 +12,11 @@ The app uses [YCommunicator-Java](https://github.com/oyagev/YCommunicator-Java) 
 See the following example video:
 http://www.youtube.com/watch?v=2xO3sKLihYA
 
+## Installation
+ - Download this package, build and install with with Android SDK.
+ - Alternativly, download the APK to your device from "downloadables" folder
+
+## Help is needed!
+ - Build APKs for older/newer android versions
+ - Receive and interact with incoming commands
+ - Transmit sensors data: GPS, Compass, Accelerometer, etc.
