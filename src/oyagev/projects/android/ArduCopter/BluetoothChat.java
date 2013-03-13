@@ -300,7 +300,7 @@ public class BluetoothChat extends Activity  {
     }
 
     private final void setStatus(CharSequence subTitle) {
-       // final ActionBar actionBar = getActionBar();
+    	//final ActionBar actionBar = getActionBar();
         //actionBar.setSubtitle(subTitle);
     }
 
