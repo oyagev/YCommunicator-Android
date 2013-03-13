@@ -295,13 +295,13 @@ public class BluetoothChat extends Activity  {
     };
 
     private final void setStatus(int resId) {
-        final ActionBar actionBar = getActionBar();
-        actionBar.setSubtitle(resId);
+        //final ActionBar actionBar = getActionBar();
+        //actionBar.setSubtitle(resId);
     }
 
     private final void setStatus(CharSequence subTitle) {
-        final ActionBar actionBar = getActionBar();
-        actionBar.setSubtitle(subTitle);
+       // final ActionBar actionBar = getActionBar();
+        //actionBar.setSubtitle(subTitle);
     }
 
     // The Handler that gets information back from the BluetoothChatService
