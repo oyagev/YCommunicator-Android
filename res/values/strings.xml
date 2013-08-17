@@ -50,6 +50,10 @@
         <item>Scrollbar</item>
         <item>Edit</item>
         <item>Label</item>
+        <item>Input String</item>
+        <item>Input Integer</item>
+        <item>Input Float</item>
+        
     </string-array>
     <string name="open_settings">Open Settings</string>
     <string name="add">Add</string>

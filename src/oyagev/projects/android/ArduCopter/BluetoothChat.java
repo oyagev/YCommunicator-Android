@@ -25,6 +25,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import oyagev.projects.YCommunicator.CallbackInterface;
 import oyagev.projects.YCommunicator.YCommunicator;
 
 import android.app.ActionBar;
@@ -223,6 +224,7 @@ public class BluetoothChat extends Activity  {
         mOutStringBuffer = new StringBuffer("");
         
         ycomm = new YCommunicator();
+        
     }
 
     @Override
@@ -334,8 +336,19 @@ public class BluetoothChat extends Activity  {
             case MESSAGE_READ:
                 byte[] readBuf = (byte[]) msg.obj;
                 // construct a string from the valid bytes in the buffer
-                String readMessage = new String(readBuf, 0, msg.arg1);
-                mConversationArrayAdapter.add(mConnectedDeviceName+":  " + readMessage);
+                //String readMessage = new String(readBuf, 0, msg.arg1);
+                //mConversationArrayAdapter.add(mConnectedDeviceName+":  " + readMessage);
+                //Toast.makeText(getApplicationContext(), "Got msg", 1).show();
+                int i;
+                byte b;
+                //Log.d("incoming","Start message:");
+                for (i=0;i<msg.arg1;i++){
+                	b = readBuf[i];
+                	//Log.d("incoming",""+(int)b);
+                	ycomm.write(b);
+				}
+                //Log.d("incoming","End message!");
+                
                 break;
             case MESSAGE_DEVICE_NAME:
                 // save the connected device's name
@@ -510,7 +523,34 @@ public class BluetoothChat extends Activity  {
 					
 				}
 			});
-			
+		}else if (type.equals("Input String")){
+				view = new LinearLayout(this);
+				
+				TextView text = new TextView(this);
+				text.setLayoutParams(new LinearLayout.LayoutParams(
+						LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+				text.setText(name);
+				text.setTag("inp_text");
+				TextView inp = new TextView(this);
+				inp.setLayoutParams(new LinearLayout.LayoutParams(
+						LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+				
+
+				//((LinearLayout)view).setOrientation(LinearLayout.VERTICAL);
+				
+				((LinearLayout)view).addView(text);
+				((LinearLayout)view).addView(inp);
+				
+				
+				
+				ycomm.registerCallback((byte)commandValue, new CallbackView(this, inp) {
+					@Override
+					public void run(byte type, byte command, byte[] data, byte data_langth) {
+						// TODO Auto-generated method stub
+						String str = new String(data);
+						((TextView)this.view).setText(str);
+					}
+				});
 		}else{
 			return;
 		}
@@ -543,6 +583,16 @@ public class BluetoothChat extends Activity  {
 			buffOut[i++] = ycomm.read();
 		}
 		sendMessage(buffOut);
+    }
+    
+    abstract class CallbackView implements CallbackInterface{
+    	Context context;
+    	View view;
+    	public CallbackView(Context context, View view) {
+			this.context = context;
+			this.view = view;
+			
+		}
     }
 
 	
