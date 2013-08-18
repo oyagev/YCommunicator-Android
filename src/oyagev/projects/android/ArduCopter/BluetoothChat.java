@@ -131,6 +131,7 @@ public class BluetoothChat extends Activity  {
     public void onStart() {
         super.onStart();
         if(D) Log.e(TAG, "++ ON START ++");
+        ycomm = new YCommunicator();
         setupControls();
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
@@ -223,7 +224,7 @@ public class BluetoothChat extends Activity  {
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
         
-        ycomm = new YCommunicator();
+        
         
     }
 
@@ -440,6 +441,8 @@ public class BluetoothChat extends Activity  {
     
     private void addControl(String name, String type, int commandValue){
     	
+    	Log.d(TAG,"Adding cmd: "+ commandValue);
+    	
     	LinearLayout row = new LinearLayout(this); 
 		row.setOrientation(LinearLayout.HORIZONTAL);
 		row.setLayoutParams(new LinearLayout.LayoutParams(
@@ -543,7 +546,7 @@ public class BluetoothChat extends Activity  {
 				
 				
 				
-				ycomm.registerCallback((byte)commandValue, new CallbackView(this, inp) {
+				ycomm.registerCallback((byte)commandValue, new CallbackView(getApplicationContext(), inp) {
 					@Override
 					public void run(byte type, byte command, byte[] data, byte data_langth) {
 						// TODO Auto-generated method stub
